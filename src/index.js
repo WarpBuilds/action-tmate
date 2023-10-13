@@ -223,7 +223,7 @@ export async function run() {
 
     core.debug("Creating new session");
     await execShellCommand(
-      `${tmate} ${newSessionExtra} ${setDefaultCommand} ${namedSessionCommand} new-session -d`
+      `${tmate} ${namedSessionCommand} ${newSessionExtra} ${setDefaultCommand} new-session -d`
     );
     await execShellCommand(`${tmate} wait tmate-ready`);
     core.debug("Created new session successfully");
