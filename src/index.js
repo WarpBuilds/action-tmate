@@ -12,6 +12,8 @@ import {
   getValidatedInput,
   getLinuxDistro,
   useSudoPrefix,
+  getSHA,
+  createRun,
 } from "./helpers";
 
 const TMATE_LINUX_VERSION = "2.4.0";
@@ -266,6 +268,22 @@ export async function run() {
       return;
     }
 
+    // Ref: https://github.com/LouisBrunner/checks-action/blob/main/src/main.ts
+    core.debug("Attaching SSH info to github check");
+    const ownership = {
+      owner: github.context.repo.owner,
+      repo: github.context.repo.repo,
+    };
+    const sha = getSHA();
+    core.debug(
+      `Creating a new Run on ${ownership.owner}/${ownership.repo}@${sha}`
+    );
+    const checkName = "ActionDebugger SSH Session";
+    const id = await createRun(octokit, checkName, sha, ownership, {
+      status: in_progress,
+    });
+    core.setOutput("check_id", id);
+
     core.debug("Entering main loop");
     while (true) {
       if (publicSSHKeysWarning) {
@@ -293,6 +311,14 @@ export async function run() {
 
       await sleep(5000);
     }
+
+    // Set the check status to completed
+    core.debug(
+      `Updating a Run on ${ownership.owner}/${ownership.repo}@${sha} (${id})`
+    );
+    await updateRun(octokit, id, ownership, {
+      status: completed,
+    });
   } catch (error) {
     core.setFailed(error);
   }
