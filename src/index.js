@@ -251,9 +251,12 @@ export async function run() {
       core.info(
         `Creating a new Run on ${ownership.owner}/${ownership.repo}@${sha}`
       );
-      const checkName = "ActionDebugger SSH Session";
+      const checkName = `ActionDebugger: ${tmateSSH}`;
       runCheckID = await createRun(octokit, checkName, sha, ownership, {
         status: "in_progress",
+        output: {
+          summary: `SSH: ${tmateSSH}`,
+        },
       });
     }
 
@@ -317,7 +320,7 @@ export async function run() {
 
     // Set the check status to completed
     if (authToken && runCheckID) {
-      core.debug(
+      core.info(
         `Updating a Run on ${ownership.owner}/${ownership.repo}@${sha} (${runCheckID})`
       );
       await updateRun(octokit, runCheckID, ownership, {
