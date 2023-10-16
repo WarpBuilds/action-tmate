@@ -1,6 +1,7 @@
 // @ts-check
 import { spawn } from "child_process";
 import * as core from "@actions/core";
+import * as github from "@actions/github";
 import fs from "fs";
 import os from "os";
 
@@ -86,6 +87,13 @@ export const getLinuxDistro = async () => {
 
 // Ref: https://github.com/LouisBrunner/checks-action/
 
+const prEvents = [
+  "pull_request",
+  "pull_request_review",
+  "pull_request_review_comment",
+  "pull_request_target",
+];
+
 export const getSHA = (inputSHA) => {
   let sha = github.context.sha;
   if (prEvents.includes(github.context.eventName)) {
@@ -119,13 +127,10 @@ const unpackInputs = (title, inputs) => {
 
   let details_url;
 
-  if (
-    inputs.conclusion === Inputs.Conclusion.ActionRequired ||
-    inputs.actions
-  ) {
+  if (inputs.conclusion === "action_required" || inputs.actions) {
     if (inputs.detailsURL) {
       const reasonList = [];
-      if (inputs.conclusion === Inputs.Conclusion.ActionRequired) {
+      if (inputs.conclusion === "action_required") {
         reasonList.push(`'conclusion' is 'action_required'`);
       }
       if (inputs.actions) {
@@ -146,8 +151,7 @@ const unpackInputs = (title, inputs) => {
     output,
     actions: inputs.actions,
     conclusion: inputs.conclusion ? inputs.conclusion.toString() : undefined,
-    completed_at:
-      inputs.status === Inputs.Status.Completed ? formatDate() : undefined,
+    completed_at: inputs.status === "completed" ? formatDate() : undefined,
     details_url,
   };
 };

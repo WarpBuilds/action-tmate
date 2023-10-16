@@ -165,7 +165,6 @@ export async function run() {
         baseUrl: apiUrl,
         request: { fetch },
       });
-
       const keys = await octokit.users.listPublicKeysForUser({
         username: actor,
       });
@@ -274,15 +273,19 @@ export async function run() {
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
     };
-    const sha = getSHA();
-    core.debug(
-      `Creating a new Run on ${ownership.owner}/${ownership.repo}@${sha}`
-    );
-    const checkName = "ActionDebugger SSH Session";
-    const id = await createRun(octokit, checkName, sha, ownership, {
-      status: in_progress,
-    });
-    core.setOutput("check_id", id);
+    const authToken = core.getInput("github-token");
+    let runCheckID = "";
+    if (authToken) {
+      const octokit = github.getOctokit(core.getInput("github-token"));
+      const sha = getSHA();
+      core.info(
+        `Creating a new Run on ${ownership.owner}/${ownership.repo}@${sha}`
+      );
+      const checkName = "ActionDebugger SSH Session";
+      runCheckID = await createRun(octokit, checkName, sha, ownership, {
+        status: "in_progress",
+      });
+    }
 
     core.debug("Entering main loop");
     while (true) {
@@ -313,12 +316,14 @@ export async function run() {
     }
 
     // Set the check status to completed
-    core.debug(
-      `Updating a Run on ${ownership.owner}/${ownership.repo}@${sha} (${id})`
-    );
-    await updateRun(octokit, id, ownership, {
-      status: completed,
-    });
+    if (authToken && runCheckID) {
+      core.debug(
+        `Updating a Run on ${ownership.owner}/${ownership.repo}@${sha} (${runCheckID})`
+      );
+      await updateRun(octokit, runCheckID, ownership, {
+        status: "completed",
+      });
+    }
   } catch (error) {
     core.setFailed(error);
   }
