@@ -175,15 +175,10 @@ export const createRun = async (octokit, name, sha, ownership, inputs) => {
 
 export const updateRun = async (octokit, id, ownership, inputs) => {
   try {
-    core.info(octokit);
-    core.info(id);
-    core.info(ownership);
-    core.info(inputs);
     const previous = await octokit.rest.checks.get({
       ...ownership,
       check_run_id: id,
     });
-    core.info(previous);
     await octokit.rest.checks.update({
       ...ownership,
       check_run_id: id,

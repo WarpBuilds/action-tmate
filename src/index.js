@@ -37,6 +37,8 @@ export async function run() {
     if (!!core.getState("isPost")) {
       const message = core.getState("message");
       const tmate = core.getState("tmate");
+      const authToken = core.getState("authToken");
+      const runCheckID = core.getState("runCheckID");
       if (tmate && message) {
         const shutdown = async () => {
           core.error("Got signal");
@@ -73,11 +75,13 @@ export async function run() {
             core.info(
               "Exiting debugging session because the continue file was created"
             );
+            await updateRunCheckPostTmateDisconnect(authToken, runCheckID);
             break;
           }
 
           if (didTmateQuit()) {
             core.info("Exiting debugging session 'tmate' quit");
+            await updateRunCheckPostTmateDisconnect(authToken, runCheckID);
             break;
           }
 
@@ -289,7 +293,8 @@ export async function run() {
       }
       core.saveState("message", message);
       core.saveState("tmate", tmate);
-      console.log(message);
+      core.saveState("authToken", authToken);
+      core.saveState("runCheckID", runCheckID);
       return;
     }
 
@@ -310,33 +315,13 @@ export async function run() {
         core.info(
           "Exiting debugging session because the continue file was created"
         );
-        // Set the check status to completed
-        if (authToken && runCheckID) {
-          core.debug(
-            `Updating a Run on ${ownership.owner}/${ownership.repo}@${sha} (${runCheckID})`
-          );
-          await updateRun(octokit, runCheckID, ownership, {
-            status: "completed",
-            conclusion: "success",
-          });
-        }
+        await updateRunCheckPostTmateDisconnect(authToken, runCheckID);
         break;
       }
 
       if (didTmateQuit()) {
         core.info("Exiting debugging session 'tmate' quit");
-        // Set the check status to completed
-        core.info("Token", authToken);
-        core.info("Run", runCheckID);
-        if (authToken && runCheckID) {
-          core.info(
-            `Updating a Run on ${ownership.owner}/${ownership.repo}@${sha} (${runCheckID})`
-          );
-          await updateRun(octokit, runCheckID, ownership, {
-            status: "completed",
-            conclusion: "success",
-          });
-        }
+        await updateRunCheckPostTmateDisconnect(authToken, runCheckID);
         break;
       }
 
@@ -344,6 +329,18 @@ export async function run() {
     }
   } catch (error) {
     core.setFailed(error);
+  }
+}
+
+async function updateRunCheckPostTmateDisconnect(authToken, runCheckID) {
+  if (authToken && runCheckID) {
+    core.debug(
+      `Updating a Run on ${ownership.owner}/${ownership.repo}@${sha} (${runCheckID})`
+    );
+    await updateRun(octokit, runCheckID, ownership, {
+      status: "completed",
+      conclusion: "success",
+    });
   }
 }
 
