@@ -340,7 +340,7 @@ async function updateRunCheckPostTmateDisconnect(authToken, runCheckID) {
   };
   if (authToken && runCheckID) {
     core.debug(
-      `Updating a Run on ${ownership.owner}/${ownership.repo}@${sha} (${runCheckID})`
+      `Updating a Run on ${ownership.owner}/${ownership.repo} (${runCheckID})`
     );
     await updateRun(octokit, runCheckID, ownership, {
       status: "completed",
