@@ -346,6 +346,9 @@ async function updateRunCheckPostTmateDisconnect(authToken, runCheckID) {
     await updateRun(octokit, runCheckID, ownership, {
       status: "completed",
       conclusion: "success",
+      output: {
+        summary: `Thanks for using ActionDebugger. The session has been terminated.`,
+      },
     });
   }
 }
