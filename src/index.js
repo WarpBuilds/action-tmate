@@ -334,12 +334,12 @@ export async function run() {
 }
 
 async function updateRunCheckPostTmateDisconnect(authToken, runCheckID) {
-  const octokit = github.getOctokit(authToken);
-  const ownership = {
-    owner: github.context.repo.owner,
-    repo: github.context.repo.repo,
-  };
   if (authToken && runCheckID) {
+    const octokit = github.getOctokit(authToken);
+    const ownership = {
+      owner: github.context.repo.owner,
+      repo: github.context.repo.repo,
+    };
     core.debug(
       `Updating a Run on ${ownership.owner}/${ownership.repo} (${runCheckID})`
     );
