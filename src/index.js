@@ -326,8 +326,10 @@ export async function run() {
       if (didTmateQuit()) {
         core.info("Exiting debugging session 'tmate' quit");
         // Set the check status to completed
+        core.info("Token", authToken);
+        core.info("Run", runCheckID);
         if (authToken && runCheckID) {
-          core.debug(
+          core.info(
             `Updating a Run on ${ownership.owner}/${ownership.repo}@${sha} (${runCheckID})`
           );
           await updateRun(octokit, runCheckID, ownership, {
