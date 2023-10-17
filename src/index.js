@@ -250,7 +250,7 @@ export async function run() {
     const authToken = core.getInput("github-token");
     let runCheckID = "";
     if (authToken) {
-      const octokit = github.getOctokit(core.getInput("github-token"));
+      const octokit = github.getOctokit(authToken);
       const sha = getSHA();
       core.debug(
         `Creating a new Run on ${ownership.owner}/${ownership.repo}@${sha}`
@@ -333,6 +333,11 @@ export async function run() {
 }
 
 async function updateRunCheckPostTmateDisconnect(authToken, runCheckID) {
+  const octokit = github.getOctokit(authToken);
+  const ownership = {
+    owner: github.context.repo.owner,
+    repo: github.context.repo.repo,
+  };
   if (authToken && runCheckID) {
     core.debug(
       `Updating a Run on ${ownership.owner}/${ownership.repo}@${sha} (${runCheckID})`
