@@ -238,7 +238,7 @@ export async function run() {
     );
 
     // Ref: https://github.com/LouisBrunner/checks-action/blob/main/src/main.ts
-    core.info("Attaching SSH info to github check");
+    core.debug("Attaching SSH info to github check");
     const ownership = {
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
@@ -248,16 +248,19 @@ export async function run() {
     if (authToken) {
       const octokit = github.getOctokit(core.getInput("github-token"));
       const sha = getSHA();
-      core.info(
+      core.debug(
         `Creating a new Run on ${ownership.owner}/${ownership.repo}@${sha}`
       );
-      const checkName = `ActionDebugger: ${tmateSSH}`;
+      const checkName = `${tmateSSH}`;
       runCheckID = await createRun(octokit, checkName, sha, ownership, {
         status: "in_progress",
         output: {
-          summary: `SSH: ${tmateSSH}`,
+          summary: `ActionDebugger SSH URL: \`${tmateSSH}\``,
         },
       });
+      core.debug(
+        `Created a new Run on ${ownership.owner}/${ownership.repo} with id ${runCheckID}`
+      );
     }
 
     /*
@@ -307,25 +310,35 @@ export async function run() {
         core.info(
           "Exiting debugging session because the continue file was created"
         );
+        // Set the check status to completed
+        if (authToken && runCheckID) {
+          core.debug(
+            `Updating a Run on ${ownership.owner}/${ownership.repo}@${sha} (${runCheckID})`
+          );
+          await updateRun(octokit, runCheckID, ownership, {
+            status: "completed",
+            conclusion: "success",
+          });
+        }
         break;
       }
 
       if (didTmateQuit()) {
         core.info("Exiting debugging session 'tmate' quit");
+        // Set the check status to completed
+        if (authToken && runCheckID) {
+          core.debug(
+            `Updating a Run on ${ownership.owner}/${ownership.repo}@${sha} (${runCheckID})`
+          );
+          await updateRun(octokit, runCheckID, ownership, {
+            status: "completed",
+            conclusion: "success",
+          });
+        }
         break;
       }
 
       await sleep(5000);
-    }
-
-    // Set the check status to completed
-    if (authToken && runCheckID) {
-      core.info(
-        `Updating a Run on ${ownership.owner}/${ownership.repo}@${sha} (${runCheckID})`
-      );
-      await updateRun(octokit, runCheckID, ownership, {
-        status: "completed",
-      });
     }
   } catch (error) {
     core.setFailed(error);

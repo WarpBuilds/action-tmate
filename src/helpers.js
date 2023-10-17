@@ -157,24 +157,35 @@ const unpackInputs = (title, inputs) => {
 };
 
 export const createRun = async (octokit, name, sha, ownership, inputs) => {
-  const { data } = await octokit.rest.checks.create({
-    ...ownership,
-    head_sha: sha,
-    name: name,
-    started_at: formatDate(),
-    ...unpackInputs(name, inputs),
-  });
-  return data.id;
+  try {
+    const { data } = await octokit.rest.checks.create({
+      ...ownership,
+      head_sha: sha,
+      name: name,
+      started_at: formatDate(),
+      ...unpackInputs(name, inputs),
+    });
+    return data.id;
+  } catch (error) {
+    core.error(error);
+    // Do not fail the action if check creation fails
+    return "";
+  }
 };
 
 export const updateRun = async (octokit, id, ownership, inputs) => {
-  const previous = await octokit.rest.checks.get({
-    ...ownership,
-    check_run_id: id,
-  });
-  await octokit.rest.checks.update({
-    ...ownership,
-    check_run_id: id,
-    ...unpackInputs(previous.data.name, inputs),
-  });
+  try {
+    const previous = await octokit.rest.checks.get({
+      ...ownership,
+      check_run_id: id,
+    });
+    await octokit.rest.checks.update({
+      ...ownership,
+      check_run_id: id,
+      ...unpackInputs(previous.data.name, inputs),
+    });
+  } catch (error) {
+    core.error(error);
+    // Do not fail the action if check update fails
+  }
 };
