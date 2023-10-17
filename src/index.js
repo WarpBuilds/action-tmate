@@ -14,6 +14,7 @@ import {
   useSudoPrefix,
   getSHA,
   createRun,
+  updateRun,
 } from "./helpers";
 
 const TMATE_LINUX_VERSION = "2.4.0";
