@@ -1,9 +1,9 @@
-name: "ActionDebugger By Warpbuild"
+name: "ActionDebugger By WarpBuild"
 description: "Debug your GitHub Actions Environment interactively by using SSH or a Web shell"
 branding:
   icon: terminal
   color: gray-dark
-author: "Warpbuild"
+author: "WarpBuild"
 runs:
   using: "node20"
   main: "lib/index.js"

@@ -1,6 +1,6 @@
-# ActionDebugger by [Warpbuild](https://warpbuild.com)
+# ActionDebugger by [WarpBuild](https://warpbuild.com)
 
-[![GitHub Marketplace](https://img.shields.io/badge/GitHub-Marketplace-green)]([https://github.com/marketplace/actions/gha-debug](https://github.com/marketplace/actions/actiondebugger-by-warpbuild))
+[![GitHub Marketplace](https://img.shields.io/badge/GitHub-Marketplace-green)](<[https://github.com/marketplace/actions/gha-debug](https://github.com/marketplace/actions/actiondebugger-by-warpbuild)>)
 
 This GitHub Action offers you a direct way to interact with the host system on which the actual scripts (Actions) will run.
 
@@ -26,9 +26,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Setup ssh session
-      uses: Warpbuilds/gha-debug@v1
+      - uses: actions/checkout@v3
+      - name: Setup ssh session
+        uses: Warpbuilds/gha-debug@v1
 ```
 
 To get the connection string, just open the `Checks` tab in your Pull Request and scroll to the bottom. There you can connect either directly per SSH or via a web based terminal.
@@ -56,6 +56,7 @@ Then add an [`if`](https://docs.github.com/en/actions/reference/context-and-expr
 <!--
 {% raw %}
 -->
+
 ```yaml
 jobs:
   build:
@@ -66,6 +67,7 @@ jobs:
         uses: Warpbuilds/gha-debug@v1
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 ```
+
 <!--
 {% endraw %}
 -->
@@ -83,11 +85,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Setup interactive ssh session
-      uses: Warpbuilds/gha-debug@v1
-      with:
-        detached: true
+      - uses: actions/checkout@v3
+      - name: Setup interactive ssh session
+        uses: Warpbuilds/gha-debug@v1
+        with:
+          detached: true
 ```
 
 By default, this mode will wait at the end of the job for a user to connect and then to terminate the ssh session. If no user has connected within 10 minutes after the post-job step started, it will terminate the `ssh` session and quit gracefully.
@@ -103,13 +105,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Setup interactive ssh session
-      uses: Warpbuilds/gha-debug@v1
-      timeout-minutes: 15
+      - uses: actions/checkout@v3
+      - name: Setup interactive ssh session
+        uses: Warpbuilds/gha-debug@v1
+        timeout-minutes: 15
 ```
 
 ## Only on failure
+
 By default a failed step will cause all following steps to be skipped. You can specify that the ssh session only starts if a previous step [failed](https://docs.github.com/en/actions/learn-github-actions/expressions#failure).
 
 ```yaml
@@ -119,10 +122,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Setup interactive ssh session
-      if: ${{ failure() }}
-      uses: Warpbuilds/gha-debug@v1
+      - uses: actions/checkout@v3
+      - name: Setup interactive ssh session
+        if: ${{ failure() }}
+        uses: Warpbuilds/gha-debug@v1
 ```
 
 ## Use registered public SSH key(s)
@@ -136,15 +139,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Setup interactive ssh session
-      uses: Warpbuilds/gha-debug@v1
-      with:
-        limit-access-to-actor: true
+      - uses: actions/checkout@v3
+      - name: Setup interactive ssh session
+        uses: Warpbuilds/gha-debug@v1
+        with:
+          limit-access-to-actor: true
 ```
 
 If the registered public SSH key is not your default private SSH key, you will need to specify the path manually, like so: `ssh -i <path-to-key> <ssh-connection-string>`.
-
 
 ## Continue a workflow
 
