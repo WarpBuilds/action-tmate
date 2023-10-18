@@ -256,7 +256,7 @@ export async function run() {
       core.debug(
         `Creating a new Run on ${ownership.owner}/${ownership.repo}@${sha}`
       );
-      const checkName = `${tmateSSH}`;
+      const checkName = tmateSSH;
       runCheckID = await createRun(octokit, checkName, sha, ownership, {
         status: "in_progress",
         output: {
