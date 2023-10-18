@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Setup ssh session
-        uses: Warpbuilds/gha-debug@v1
+        uses: Warpbuilds/gha-debug@v1.2
 ```
 
 To get the connection string, just open the `Checks` tab in your Pull Request and scroll to the bottom. There you can connect either directly per SSH or via a web based terminal.
@@ -64,7 +64,7 @@ jobs:
     steps:
       # Enable ssh debugging of manually-triggered workflows if the input option was provided
       - name: Setup interactive ssh session
-        uses: Warpbuilds/gha-debug@v1
+        uses: Warpbuilds/gha-debug@v1.2
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 ```
 
@@ -87,7 +87,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Setup interactive ssh session
-        uses: Warpbuilds/gha-debug@v1
+        uses: Warpbuilds/gha-debug@v1.2
         with:
           detached: true
 ```
@@ -107,7 +107,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Setup interactive ssh session
-        uses: Warpbuilds/gha-debug@v1
+        uses: Warpbuilds/gha-debug@v1.2
         timeout-minutes: 15
 ```
 
@@ -125,7 +125,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Setup interactive ssh session
         if: ${{ failure() }}
-        uses: Warpbuilds/gha-debug@v1
+        uses: Warpbuilds/gha-debug@v1.2
 ```
 
 ## Use registered public SSH key(s)
@@ -141,12 +141,38 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Setup interactive ssh session
-        uses: Warpbuilds/gha-debug@v1
+        uses: Warpbuilds/gha-debug@v1.2
         with:
           limit-access-to-actor: true
 ```
 
 If the registered public SSH key is not your default private SSH key, you will need to specify the path manually, like so: `ssh -i <path-to-key> <ssh-connection-string>`.
+
+### Deterministic SSH URLs (Named sessions)
+
+(This feature requires an API key from WarpBuild. Please contact WarpBuild Support.)
+
+SSH URLs produced by the ActionDebugger are private long random strings which are uniquely generated every time an action is run. This is to keep anyone from guessing the string and connecting to the runner machine. However, there can be cases where you want to keep the URL same across action runs. This can be achieved using named sessions.
+
+Just input named-session-name and named-session-api-key, and the action will always generate the SSH URL in the form of `<username>/<named-session-name>@gha.warp.build`.
+
+Make sure that `limit-access-to-actor` is set to `true` for named sessions.
+
+```yaml
+name: CI
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup interactive ssh session
+        uses: Warpbuilds/gha-debug@v1.2
+        with:
+          limit-access-to-actor: true
+          named-session-name: random-string-2345ab
+          named-session-api-key: <API_KEY_PROVIDED_BY_WARPBUILD>
+```
 
 ## Continue a workflow
 
