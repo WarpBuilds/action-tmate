@@ -12,6 +12,9 @@ import {
   getValidatedInput,
   getLinuxDistro,
   useSudoPrefix,
+  getSHA,
+  createRun,
+  updateRun,
 } from "./helpers";
 
 const TMATE_LINUX_VERSION = "2.4.0";
@@ -35,6 +38,8 @@ export async function run() {
     if (!!core.getState("isPost")) {
       const message = core.getState("message");
       const tmate = core.getState("tmate");
+      const authToken = core.getState("authToken");
+      const runCheckID = core.getState("runCheckID");
       if (tmate && message) {
         const shutdown = async () => {
           core.error("Got signal");
@@ -71,11 +76,13 @@ export async function run() {
             core.info(
               "Exiting debugging session because the continue file was created"
             );
+            await updateRunCheckPostTmateDisconnect(authToken, runCheckID);
             break;
           }
 
           if (didTmateQuit()) {
             core.info("Exiting debugging session 'tmate' quit");
+            await updateRunCheckPostTmateDisconnect(authToken, runCheckID);
             break;
           }
 
@@ -163,7 +170,6 @@ export async function run() {
         baseUrl: apiUrl,
         request: { fetch },
       });
-
       const keys = await octokit.users.listPublicKeysForUser({
         username: actor,
       });
@@ -236,6 +242,32 @@ export async function run() {
       `${tmate} display -p '#{tmate_web}'`
     );
 
+    // Ref: https://github.com/LouisBrunner/checks-action/blob/main/src/main.ts
+    core.debug("Attaching SSH info to github check");
+    const ownership = {
+      owner: github.context.repo.owner,
+      repo: github.context.repo.repo,
+    };
+    const authToken = core.getInput("github-token");
+    let runCheckID = "";
+    if (authToken) {
+      const octokit = github.getOctokit(authToken);
+      const sha = getSHA();
+      core.debug(
+        `Creating a new Run on ${ownership.owner}/${ownership.repo}@${sha}`
+      );
+      const checkName = tmateSSH;
+      runCheckID = await createRun(octokit, checkName, sha, ownership, {
+        status: "in_progress",
+        output: {
+          summary: `ActionDebugger SSH URL: \`${tmateSSH}\``,
+        },
+      });
+      core.debug(
+        `Created a new Run on ${ownership.owner}/${ownership.repo} with id ${runCheckID}`
+      );
+    }
+
     /*
      * Publish a variable so that when the POST action runs, it can determine
      * it should run the appropriate logic. This is necessary since we don't
@@ -262,7 +294,8 @@ export async function run() {
       }
       core.saveState("message", message);
       core.saveState("tmate", tmate);
-      console.log(message);
+      core.saveState("authToken", authToken);
+      core.saveState("runCheckID", runCheckID);
       return;
     }
 
@@ -283,11 +316,13 @@ export async function run() {
         core.info(
           "Exiting debugging session because the continue file was created"
         );
+        await updateRunCheckPostTmateDisconnect(authToken, runCheckID);
         break;
       }
 
       if (didTmateQuit()) {
         core.info("Exiting debugging session 'tmate' quit");
+        await updateRunCheckPostTmateDisconnect(authToken, runCheckID);
         break;
       }
 
@@ -295,6 +330,26 @@ export async function run() {
     }
   } catch (error) {
     core.setFailed(error);
+  }
+}
+
+async function updateRunCheckPostTmateDisconnect(authToken, runCheckID) {
+  if (authToken && runCheckID) {
+    const octokit = github.getOctokit(authToken);
+    const ownership = {
+      owner: github.context.repo.owner,
+      repo: github.context.repo.repo,
+    };
+    core.debug(
+      `Updating a Run on ${ownership.owner}/${ownership.repo} (${runCheckID})`
+    );
+    await updateRun(octokit, runCheckID, ownership, {
+      status: "completed",
+      conclusion: "success",
+      output: {
+        summary: `Thanks for using ActionDebugger. The session has been terminated.`,
+      },
+    });
   }
 }
 
