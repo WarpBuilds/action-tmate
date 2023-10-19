@@ -31,9 +31,11 @@ jobs:
         uses: Warpbuilds/gha-debug@v1.2
 ```
 
-To get the connection string, just open the `Checks` tab in your Pull Request and scroll to the bottom. There you can connect either directly per SSH or via a web based terminal.
+To get the connection string, just open the `Checks` tab in your Pull Request or Run and scroll to the bottom. There you can connect either directly per SSH or via a web based terminal. The connection string is also logged inside workflow logs.
 
-![GitHub Checks tab](./docs/checks-tab.png "GitHub Checks tab")
+![screenshots](https://github.com/WarpBuilds/gha-debug/assets/9110203/2e1ce772-285f-4a4e-a41a-d12054d8960e)
+![check](https://github.com/WarpBuilds/gha-debug/assets/9110203/d8cb31ef-5044-4f39-a391-a198ec09ce39)
+
 
 ## Manually triggered debug
 
