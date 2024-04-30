@@ -117,6 +117,9 @@ jobs:
 
 By default a failed step will cause all following steps to be skipped. You can specify that the ssh session only starts if a previous step [failed](https://docs.github.com/en/actions/learn-github-actions/expressions#failure).
 
+<!--
+{% raw %}
+-->
 ```yaml
 name: CI
 on: [push]
@@ -129,6 +132,9 @@ jobs:
         if: ${{ failure() }}
         uses: Warpbuilds/action-debugger@v1.3
 ```
+<!--
+{% endraw %}
+-->
 
 ## Use registered public SSH key(s)
 
